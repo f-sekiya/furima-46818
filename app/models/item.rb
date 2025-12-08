@@ -11,7 +11,6 @@ class Item < ApplicationRecord
   belongs_to_active_hash :shipping_day
 
   with_options presence: true do
-    validates :image
     validates :name
     validates :description
     validates :price
@@ -36,4 +35,12 @@ class Item < ApplicationRecord
               less_than_or_equal_to: 9_999_999
             },
             allow_blank: true
+
+  validate :image_attached
+
+   private
+
+  def image_attached
+    errors.add(:image, 'を添付してください') unless image.attached?
+  end
 end
