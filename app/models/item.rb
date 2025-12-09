@@ -13,7 +13,6 @@ class Item < ApplicationRecord
   with_options presence: true do
     validates :name
     validates :description
-    validates :price
   end
 
   with_options numericality: { other_than: 1, message: 'を選択してください' } do
@@ -24,21 +23,18 @@ class Item < ApplicationRecord
     validates :shipping_day_id
   end
 
-  validates :price,
-            format: { with: /\A[0-9]+\z/, message: 'は半角数字で入力してください' },
-            allow_blank: true
+  validates :price, presence: true
 
   validates :price,
             numericality: {
               only_integer: true,
               greater_than_or_equal_to: 300,
               less_than_or_equal_to: 9_999_999
-            },
-            allow_blank: true
+            }, allow_blank: true
 
   validate :image_attached
 
-   private
+  private
 
   def image_attached
     errors.add(:image, 'を添付してください') unless image.attached?
