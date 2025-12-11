@@ -5,6 +5,10 @@ class ItemsController < ApplicationController
     @items = Item.includes(image_attachment: :blob).order(created_at: :desc)
   end
 
+  def show
+    @item = Item.find(params[:id])
+  end
+
   def new
     @item = Item.new
   end
