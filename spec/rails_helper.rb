@@ -61,4 +61,34 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+  # Clear any active DB connections after each example to avoid
+  # "This connection is in use by: #<Fiber:...>" errors when fibers
+  # or background jobs briefly hold connections.
+  config.after(:each) do
+  # shutdown common concurrent-ruby global executors if present
+  begin
+    if defined?(Concurrent) && Concurrent.respond_to?(:global_io_executor)
+      Concurrent.global_io_executor.shutdown
+      Concurrent.global_io_executor.kill unless Concurrent.global_io_executor.shutdown?
+    end
+  rescue => e
+    warn "executor shutdown failed: #{e.class}: #{e.message}"
+  end
+
+  begin
+    if defined?(Concurrent) && Concurrent.respond_to?(:global_fast_executor)
+      Concurrent.global_fast_executor.shutdown
+      Concurrent.global_fast_executor.kill unless Concurrent.global_fast_executor.shutdown?
+    end
+  rescue => e
+    warn "executor shutdown failed: #{e.class}: #{e.message}"
+  end
+
+  # clear AR connections using current recommended API, but don't raise on ownership errors
+  begin
+    ActiveRecord::Base.connection_handler.clear_active_connections!
+  rescue ActiveRecord::ActiveRecordError => e
+    warn "could not clear ActiveRecord connections: #{e.class}: #{e.message}"
+  end
+end
 end
