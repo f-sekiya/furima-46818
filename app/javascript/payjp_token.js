@@ -1,9 +1,10 @@
-const pay = () => {
+﻿const pay = () => {
   const form = document.getElementById('charge-form');
-  if (!form) return;
+  if (!form || form.dataset.payjpInitialized === "true") return;
+  form.dataset.payjpInitialized = "true";
 
-  const publicKey = gon.public_key
-  const payjp = Payjp(publicKey)
+  const publicKey = gon.public_key;
+  const payjp = Payjp(publicKey);
   const elements = payjp.elements();
   const numberElement = elements.create('cardNumber');
   const expiryElement = elements.create('cardExpiry');
@@ -30,5 +31,6 @@ const pay = () => {
   });
 };
 
+document.addEventListener("DOMContentLoaded", pay);
 window.addEventListener("turbo:load", pay);
 window.addEventListener("turbo:render", pay);
