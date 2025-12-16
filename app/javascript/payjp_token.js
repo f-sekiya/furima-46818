@@ -1,8 +1,4 @@
-﻿const pay = () => {
-  const form = document.getElementById('charge-form');
-  if (!form || form.dataset.payjpInitialized === "true") return;
-  form.dataset.payjpInitialized = "true";
-
+const pay = () => {
   const publicKey = gon.public_key;
   const payjp = Payjp(publicKey);
   const elements = payjp.elements();
@@ -14,14 +10,16 @@
   expiryElement.mount('#expiry-form');
   cvcElement.mount('#cvc-form');
 
+  const form = document.getElementById('charge-form');
   form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
     payjp.createToken(numberElement).then((response) => {
-      if (response.error) {
-        return;
+      if (!response.error) {
+        const token = response.id;
+        const tokenObj = `<input value="${token}" name="order_address[token]" type="hidden">`;
+        form.insertAdjacentHTML('beforeend', tokenObj);
       }
-      const token = response.id;
-      const tokenObj = `<input value="${token}" name="order_address[token]" type="hidden">`;
-      form.insertAdjacentHTML('beforeend', tokenObj);
 
       numberElement.clear();
       expiryElement.clear();
@@ -31,6 +29,5 @@
   });
 };
 
-document.addEventListener("DOMContentLoaded", pay);
 window.addEventListener("turbo:load", pay);
 window.addEventListener("turbo:render", pay);
